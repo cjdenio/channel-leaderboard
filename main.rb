@@ -62,7 +62,7 @@ post '/slack/events' do
   users = User.order(num_channels: :desc).limit(50)
 
   emojis = %w[peefest yeah festpee cooll-thumbs errors seal cow-think ratscream wizard-caleb ukulele-ishan yuh ellathonk
-              0-9_numbers lfg sussy hyper-dino-wave]
+              0-9_numbers lfg sussy hyper-dino-wave zfogg-bot radiant doot wahoo-fish ninja doge hugohu matturtle orpheus-eating-chair]
 
   slack.publish_view parsed['event']['user'], {
     type: 'home',
