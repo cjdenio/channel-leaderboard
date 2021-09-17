@@ -24,6 +24,7 @@ GEM
     tilt (2.0.10)
 
 PLATFORMS
+  aarch64-linux-musl
   arm64-darwin-20
 
 DEPENDENCIES
