@@ -2,25 +2,27 @@ require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'dotenv/load'
 require 'openssl'
-require 'pg'
+require 'active_record'
 
+require_relative 'models'
 require_relative 'slack'
 
-db = PG.connect ENV['DATABASE_URL']
+ActiveRecord::Base.establish_connection ENV['DATABASE_URL']
 
 slack = Slack.new ENV['SLACK_TOKEN']
 
 get '/update' do
   return 400 if params['token'] != ENV['UPDATE_TOKEN']
 
-  users = db.exec('SELECT id, token FROM users')
+  users = User.all
 
   count = 0
 
   users.each do |user|
-    channels = Slack.new(user['token']).user_channels['channels']
+    channels = Slack.new(user.token).user_channels['channels']
 
-    db.exec_params 'UPDATE users SET num_channels = $2 WHERE id = $1', [user['id'], channels.size]
+    user.num_channels = channels.size
+    user.save
 
     count += 1
   end
@@ -42,8 +44,8 @@ get '/code' do
 
   channels = Slack.new(resp['authed_user']['access_token']).user_channels['channels']
 
-  db.exec_params 'INSERT INTO users (id, token, num_channels) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET token = $2, num_channels = $3',
-                 [resp['authed_user']['id'], resp['authed_user']['access_token'], channels.length]
+  User.new(id: resp['authed_user']['id'], token: resp['authed_user']['access_token'],
+           num_channels: channels.length).save
 
   redirect "slack://app?team=#{resp['team']['id']}&id=#{ENV['SLACK_APP_ID']}&tab=home"
 end
@@ -57,7 +59,7 @@ post '/slack/events' do
   return 400 unless verify_request_signature?(data, request.env['HTTP_X_SLACK_SIGNATURE'],
                                               request.env['HTTP_X_SLACK_REQUEST_TIMESTAMP'])
 
-  users = db.exec('SELECT id, num_channels FROM users ORDER BY num_channels DESC LIMIT 20')
+  users = User.order(num_channels: :desc).limit(50)
 
   emojis = %w[peefest yeah festpee cooll-thumbs errors seal cow-think ratscream wizard-caleb ukulele-ishan yuh ellathonk
               0-9_numbers lfg sussy hyper-dino-wave]
@@ -91,7 +93,7 @@ post '/slack/events' do
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: "*#{index + 1}*: <@#{user['id']}>'s in #{user['num_channels']} channels :#{emojis.sample}:"
+            text: "*#{index + 1}*: <@#{user.id}>'s in #{user.num_channels} channels :#{emojis.sample}:"
           }
         }
       end
