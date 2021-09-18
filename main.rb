@@ -2,12 +2,10 @@ require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'dotenv/load'
 require 'openssl'
-require 'active_record'
+require 'sinatra/activerecord'
 
 require_relative 'models'
 require_relative 'slack'
-
-ActiveRecord::Base.establish_connection ENV['DATABASE_URL']
 
 slack = Slack.new ENV['SLACK_TOKEN']
 

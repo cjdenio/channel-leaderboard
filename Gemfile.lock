@@ -32,6 +32,9 @@ GEM
       rack (~> 2.2)
       rack-protection (= 2.1.0)
       tilt (~> 2.0)
+    sinatra-activerecord (2.0.23)
+      activerecord (>= 4.1)
+      sinatra (>= 1.0)
     sinatra-contrib (2.1.0)
       multi_json
       mustermann (~> 1.0)
@@ -57,6 +60,7 @@ DEPENDENCIES
   dotenv (~> 2.7, >= 2.7.6)
   pg (~> 1.2, >= 1.2.3)
   sinatra (~> 2.1)
+  sinatra-activerecord (~> 2.0, >= 2.0.23)
   sinatra-contrib (~> 2.1)
   thin (~> 1.8, >= 1.8.1)
 
